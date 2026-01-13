@@ -1,0 +1,72 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Roles {
+  role_id     Int     @id @default(autoincrement())
+  role_name   String
+  description String?
+  employees   Employees[]
+  users       Users[]
+}
+
+model Departments {
+  department_id   Int     @id @default(autoincrement())
+  department_name String
+  employees       Employees[]
+}
+
+model Employees {
+  employee_id   Int      @id @default(autoincrement())
+  employee_code String   @unique
+  first_name    String
+  last_name     String
+  email         String   @unique
+  phone         String
+  gender        String
+  date_of_birth DateTime
+  join_date     DateTime
+  salary        Float
+  status        String
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  department_id Int
+  role_id       Int
+
+  department Departments @relation(fields: [department_id], references: [department_id])
+  role       Roles       @relation(fields: [role_id], references: [role_id])
+
+  attendance Attendance[]
+  users      Users[]
+}
+
+model Users {
+  user_id       Int      @id @default(autoincrement())
+  employee_id   Int
+  username      String   @unique
+  password_hash String
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+  role_id       Int
+
+  employee Employees @relation(fields: [employee_id], references: [employee_id])
+  role     Roles     @relation(fields: [role_id], references: [role_id])
+}
+
+model Attendance {
+  attendance_id Int      @id @default(autoincrement())
+  date          DateTime
+  check_in      DateTime?
+  check_out     DateTime?
+  status        String
+  created_at    DateTime @default(now())
+
+  employee_id Int
+  employee    Employees @relation(fields: [employee_id], references: [employee_id])
+}
