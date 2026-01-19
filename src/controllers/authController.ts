@@ -14,7 +14,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
   }
 
   try {
-    // Fetch user + employee status
+    // Fetch user + employee status + role in a single query
     const result = await pool.query(
       `
       SELECT 
