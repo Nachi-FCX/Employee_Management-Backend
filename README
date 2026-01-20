@@ -84,4 +84,23 @@ DATABASE_URL = "postgresql://neondb_owner:npg_Tv6hBMt9bGxQ@ep-delicate-pine-a1u2
 | status        | Present / Absent / Leave        |
 | created_at    | Record created time             |
 
+8) Pages Table (Master List of UI Pages)
+| Column Name | Description                                |
+| ----------- | ------------------------------------------ |
+| page_id     | Unique ID for each page (Primary Key)      |
+| page_name   | Human-readable page name (e.g., Dashboard) |
+| route_path  | Frontend route path (e.g., /employees)     |
+| module_name | Logical module name (e.g., HR, Payroll)    |
+| created_at  | Record created time                        |
+
+9) Access Table (Employee → Page Permissions)
+| Column Name | Description                                             |
+| ----------- | ------------------------------------------------------- |
+| access_id   | Unique ID for access record (Primary Key)               |
+| company_id  | Linked Company ID (Foreign Key)                         |
+| employee_id | Linked Employee ID (Foreign Key)                        |
+| page_id     | Linked Page ID (Foreign Key)                            |
+| can_view    | Whether employee can view this page (true / false)      |
+| can_edit    | Whether employee can edit on this page (true / false)   |
+| can_delete  | Whether employee can delete on this page (true / false) |
 
