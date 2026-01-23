@@ -1,0 +1,204 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+/**
+ * =========================
+ * ROOT USERS (SYSTEM ADMIN)
+ * =========================
+ */
+model RootUser {
+  id            Int      @id @default(autoincrement())
+  full_name     String   @db.VarChar(255)
+  username      String   @unique @db.VarChar(100)
+  password_hash String
+  email         String   @unique @db.VarChar(255)
+  is_active     Boolean  @default(true)
+  last_login    DateTime?
+  created_at    DateTime @default(now())
+}
+
+/**
+ * =========================
+ * COMPANIES (TENANTS)
+ * =========================
+ */
+model Companies {
+  id            Int      @id @default(autoincrement())
+  company_name  String   @db.VarChar(255)
+  company_code  String   @unique @db.VarChar(50)
+  contact_email String   @unique @db.VarChar(255)
+  industry      String?  @db.VarChar(100)
+  status        String   @default("active") @db.VarChar(20)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  roles       Roles[]
+  departments Departments[]
+  employees   Employees[]
+  users       Users[]
+  attendance  Attendance[]
+  access      Access[]
+}
+
+/**
+ * =========================
+ * ROLES
+ * =========================
+ */
+model Roles {
+  role_id     Int    @id @default(autoincrement()) @map("id")
+  company_id  Int?
+  role_name   String @db.VarChar(50)
+  description String?
+
+  company   Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  employees Employees[]
+  users     Users[]
+  
+  @@unique([company_id, role_name])  // ← ADD THIS
+  @@map("roles")
+}
+
+/**
+ * =========================
+ * DEPARTMENTS
+ * =========================
+ */
+model Departments {
+  department_id   Int    @id @default(autoincrement()) @map("id")
+  company_id      Int?
+  department_name String @db.VarChar(100)
+
+  company   Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  employees Employees[]
+  
+  @@unique([company_id, department_name])  // ← ADD THIS
+  @@map("departments")
+}
+
+/**
+ * =========================
+ * EMPLOYEES
+ * =========================
+ */
+model Employees {
+  id            Int      @id @default(autoincrement())
+  company_id    Int?
+  employee_code String   @db.VarChar(20)
+  first_name    String   @db.VarChar(100)
+  last_name     String   @db.VarChar(100)
+  email         String   @db.VarChar(150)
+  phone         String   @db.VarChar(15)
+  gender        String   @db.VarChar(10)
+  date_of_birth DateTime
+  join_date     DateTime
+  salary        Decimal  @db.Decimal(10, 2)
+  department_id Int
+  role_id       Int?
+  status        Boolean  @default(true)
+  created_at    DateTime @default(now())
+  updated_at    DateTime @updatedAt
+
+  company    Companies?   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  department Departments @relation(fields: [department_id], references: [department_id])
+  role       Roles?       @relation(fields: [role_id], references: [role_id])
+
+  users      Users[]
+  access     Access[]
+  attendance Attendance[]
+  
+  @@unique([company_id, employee_code])  // ← ADD THIS
+  @@unique([company_id, email])           // ← ADD THIS
+  @@map("employees")
+}
+
+/**
+ * =========================
+ * USERS (LOGIN USERS)
+ * =========================
+ */
+model Users {
+  id            Int      @id @default(autoincrement())
+  company_id    Int?
+  employee_id   Int      @unique
+  username      String   @db.VarChar(100)
+  password_hash String
+  role_id       Int
+  is_active     Boolean  @default(true)
+  created_at    DateTime @default(now())
+
+  company  Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  employee Employees @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  role     Roles     @relation(fields: [role_id], references: [role_id])
+  
+  @@unique([company_id, username])  // ← ADD THIS
+  @@map("users")
+}
+
+/**
+ * =========================
+ * ATTENDANCE
+ * =========================
+ */
+model Attendance {
+  attendance_id Int      @id @default(autoincrement()) @map("id")
+  company_id    Int?
+  employee_id   Int?
+  date          DateTime
+  check_in      DateTime?
+  check_out     DateTime?
+  status        String?
+  created_at    DateTime @default(now())
+
+  company  Companies? @relation(fields: [company_id], references: [id])
+  employee Employees? @relation(fields: [employee_id], references: [id])
+  
+  @@map("attendance")
+}
+
+/**
+ * =========================
+ * PAGES (MASTER)
+ * =========================
+ */
+model Pages {
+  page_id     Int      @id @default(autoincrement())
+  page_name   String   @db.VarChar(100)
+  route_path  String   @unique @db.VarChar(255)
+  module_name String?  @db.VarChar(100)
+  created_at  DateTime @default(now())
+
+  access Access[]
+  
+  @@map("pages")  // ← ADD THIS
+}
+
+/**
+ * =========================
+ * ACCESS (RBAC)
+ * =========================
+ */
+model Access {
+  id          Int     @id @default(autoincrement())
+  company_id  Int
+  employee_id Int
+  page_id     Int
+  can_view    Boolean @default(true)
+  can_edit    Boolean @default(false)
+  can_delete  Boolean @default(false)
+
+  company  Companies @relation(fields: [company_id], references: [id])
+  employee Employees @relation(fields: [employee_id], references: [id])
+  page     Pages     @relation(fields: [page_id], references: [page_id])
+
+  @@unique([employee_id, page_id])
+  @@map("access")  // ← ADD THIS
+}
+
+
