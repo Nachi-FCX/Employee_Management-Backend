@@ -1,22 +1,39 @@
 import bcrypt from "bcrypt";
 import prisma from "../prisma";
 
-async function createAdmin() {
-  const hashedPassword = await bcrypt.hash("admin123", 10);
+/**
+ * ===============================
+ * CREATE ROOT ADMIN USER
+ * ===============================
+ * Creates a root user for system administration
+ * Run: npm run seed:admin
+ */
+async function createRootUser() {
+  try {
+    const hashedPassword = await bcrypt.hash("Admin@123", 10);
 
-  await prisma.users.create({
-    data: {
-      employee_id: 1, 
-      username: "admin",
-      password_hash: hashedPassword,
-      role_id: 1, 
-      is_active: true,
-    },
-  });
+    const rootUser = await prisma.rootUser.create({
+      data: {
+        full_name: "System Administrator",
+        username: "admin_system",
+        email: "admin@system.com",
+        password_hash: hashedPassword,
+        is_active: true,
+      },
+    });
 
-  console.log("✅ Admin user created successfully");
+    console.log("✅ Root user created successfully");
+    console.log(`   Username: ${rootUser.username}`);
+    console.log(`   Password: Admin@123`);
+    console.log(`   Email: ${rootUser.email}`);
+  } catch (error) {
+    console.error("❌ Error creating root user:", error);
+  }
 }
 
-createAdmin()
-  .catch((err) => console.error(err))
-  .finally(() => process.exit());
+createRootUser()
+  .catch((error) => {
+    console.error("❌ Script failed:", error);
+    process.exit(1);
+  })
+  .finally(() => prisma.$disconnect());

@@ -8,7 +8,10 @@
     "dev": "nodemon src/server.ts",
     "build": "tsc",
     "start": "node dist/server.js",
-    "test": "echo \"No tests yet\""
+    "test": "echo \"No tests yet\"",
+    "seed:pages": "ts-node src/scripts/seedPages.ts",
+    "seed:admin": "ts-node src/scripts/createAdmin.ts",
+    "prisma:generate": "prisma generate"
   },
   "dependencies": {
     "@prisma/adapter-neon": "^7.2.0",
