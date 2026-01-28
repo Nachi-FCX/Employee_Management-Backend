@@ -3,16 +3,34 @@ import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import prisma from "../prisma";
 
-export const createEmployee = async (req: Request, res: Response) => {                                      // CREATE EMPLOYEE + USER
+export const createEmployee = async (req: Request, res: Response) => {                              // CREATE EMPLOYEE          
   try {
-    // Logged-in user (root/admin/hr)
+    console.log("AUTH:", {
+    user: (req as any).user,
+    rootUser: (req as any).rootUser,
+    });
+
+    const rootUser = (req as any).rootUser;
     const user = (req as any).user;
 
-    if (!user || !user.company_id) {
-      return res.status(401).json({ message: "Unauthorized" });
+    let company_id: number | null = null;
+
+    if (rootUser?.root_user_id) {
+      if (!req.body.company_id) {
+        return res.status(400).json({
+          message: "company_id is required for root",
+        });
+      }
+      company_id = Number(req.body.company_id);
     }
 
-    const company_id = user.company_id;
+    if (user?.company_id) {
+      company_id = user.company_id;
+    }
+
+    if (!company_id) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
 
     const {
       first_name,
@@ -42,7 +60,6 @@ export const createEmployee = async (req: Request, res: Response) => {          
     const department = await prisma.departments.findUnique({
       where: { department_id: Number(department_id) },
     });
-
     if (!department) {
       return res.status(404).json({ message: "Department not found" });
     }
@@ -50,7 +67,6 @@ export const createEmployee = async (req: Request, res: Response) => {          
     const role = await prisma.roles.findUnique({
       where: { role_id: Number(role_id) },
     });
-
     if (!role) {
       return res.status(404).json({ message: "Role not found" });
     }
@@ -58,23 +74,20 @@ export const createEmployee = async (req: Request, res: Response) => {          
     const company = await prisma.companies.findUnique({
       where: { id: company_id },
     });
-
     if (!company) {
       return res.status(404).json({ message: "Company not found" });
     }
 
-    const employeeCount = await prisma.employees.count({
+    const count = await prisma.employees.count({
       where: { company_id },
     });
 
     const employee_code =
-      company.company_code + String(employeeCount + 1).padStart(4, "0");
+      company.company_code + String(count + 1).padStart(4, "0");
 
     const password_hash = await bcrypt.hash(password, 10);
 
-    // 7️⃣ Transaction (Employee + User)
     const result = await prisma.$transaction(async (tx) => {
-      //  Create employee
       const employee = await tx.employees.create({
         data: {
           company_id,
@@ -93,7 +106,6 @@ export const createEmployee = async (req: Request, res: Response) => {          
         },
       });
 
-      //  Create user login
       const userAccount = await tx.users.create({
         data: {
           company_id,
@@ -113,13 +125,15 @@ export const createEmployee = async (req: Request, res: Response) => {          
       employee: result.employee,
       user: result.userAccount,
     });
-  } catch (error) {
+  } 
+  catch (error) {
     console.error("CREATE EMPLOYEE ERROR:", error);
     return res.status(500).json({
       message: "Error creating employee",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
+
 };
 
 

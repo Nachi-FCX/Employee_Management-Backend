@@ -4,11 +4,12 @@ import {
   getEmployees,
   updateEmployee,
 } from "../controllers/employees.controller";
+import { unifiedAuth } from "../middleware/auth.middleware";
 
 const router = Router();
 
-router.post("/", createEmployee);           // was: authMiddleware, createEmployee
-router.get("/", getEmployees);              // was: authMiddleware, getEmployees
-router.put("/:id", updateEmployee);         // was: authMiddleware, updateEmployee
+router.post("/", unifiedAuth, createEmployee);
+router.get("/", unifiedAuth, getEmployees);
+router.put("/:id", unifiedAuth, updateEmployee);
 
 export default router;

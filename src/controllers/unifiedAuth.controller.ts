@@ -6,19 +6,19 @@ import prisma from "../prisma";
 export const unifiedLogin = async (req: Request, res: Response) => {
   try {
     const { username, password, role } = req.body;
-
+    
     if (!username || !password || !role) {
       return res.status(400).json({
-        message: "username, password and role are required",
+        message: "Username, password, and role are required fields",
       });
     }
 
-    /**
-     * =========================
-     * ROOT USER LOGIN
-     * =========================
-     */
-    if (role === "root") {
+    const JWT_SECRET = process.env.JWT_SECRET;
+    if (!JWT_SECRET) {
+      throw new Error("JWT_SECRET is not defined in environment variables");
+    }
+
+    if (role === "root") {                                                          // ROOT LOGIN                           
       const rootUser = await prisma.rootUser.findUnique({
         where: { username },
       });
@@ -27,38 +27,35 @@ export const unifiedLogin = async (req: Request, res: Response) => {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const isValid = await bcrypt.compare(password, rootUser.password_hash);
-      if (!isValid) {
+      const isPasswordValid = await bcrypt.compare(password, rootUser.password_hash);
+      if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
       const token = jwt.sign(
         {
           root_user_id: rootUser.id,
-          type: "ROOT",
+          type: "ROOT", 
         },
-        process.env.JWT_SECRET || "secret_key",
+        JWT_SECRET,
         { expiresIn: "2h" }
       );
 
-      return res.json({
+      return res.status(200).json({
         message: "Root login successful",
         token,
         role: "root",
+        user: {
+          id: rootUser.id,
+          username: rootUser.username,
+          full_name: rootUser.full_name,
+        },
       });
     }
 
-    /**
-     * =========================
-     * EMPLOYEE USER LOGIN
-     * =========================
-     */
-    if (role === "employee") {
-      const user = await prisma.users.findFirst({
-        where: { 
-          username,
-          company_id: null
-        },
+    if (role === "employee") {                                                            // EMPLOYEE LOGIN               
+      const userAccount = await prisma.users.findFirst({
+        where: { username },
         include: {
           employee: true,
           role: true,
@@ -66,50 +63,50 @@ export const unifiedLogin = async (req: Request, res: Response) => {
         },
       });
 
-      if (!user || !user.is_active) {
+        
+      if (!userAccount || !userAccount.is_active) {
+        return res.status(401).json({ message: "Invalid credentials" });
+      }
+ 
+      const isPasswordValid = await bcrypt.compare(password, userAccount.password_hash);
+      if (!isPasswordValid) {
         return res.status(401).json({ message: "Invalid credentials" });
       }
 
-      const isValid = await bcrypt.compare(password, user.password_hash);
-      if (!isValid) {
-        return res.status(401).json({ message: "Invalid credentials" });
-      }
-
+ 
       const token = jwt.sign(
         {
-          user_id: user.id,
-          employee_id: user.employee_id,
-          company_id: user.company_id,
-          role: user.role.role_name,
+          user_id: userAccount.id,
+          employee_id: userAccount.employee_id,
+          company_id: userAccount.company_id,
+          role: userAccount.role.role_name,
           type: "EMPLOYEE",
         },
-        process.env.JWT_SECRET || "secret_key",
-        { expiresIn: "1h" }
+        JWT_SECRET,
+        { expiresIn: "8h" }  
       );
 
-      return res.json({
+      return res.status(200).json({
         message: "Employee login successful",
         token,
         role: "employee",
         user: {
-          username: user.username,
-          full_name: `${user.employee.first_name} ${user.employee.last_name}`,
-          company: user.company?.company_name || null,
-          role: user.role.role_name,
+          username: userAccount.username,
+          full_name: `${userAccount.employee.first_name} ${userAccount.employee.last_name}`,
+          company: userAccount.company?.company_name || "Internal",
+          role: userAccount.role.role_name,
         },
       });
     }
-
-    /**
-     * =========================
-     * INVALID ROLE
-     * =========================
-     */
+ 
     return res.status(400).json({
-      message: "Invalid role. Use 'root' or 'employee'",
+      message: "Invalid role provided. Access denied.",
     });
+
   } catch (error) {
-    console.error("Unified Login Error:", error);
-    return res.status(500).json({ message: "Login failed" });
+    console.error("Critical Login Error:", error);
+    return res.status(500).json({
+      message: "An internal server error occurred during login",
+    });
   }
 };
