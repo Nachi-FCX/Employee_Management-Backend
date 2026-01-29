@@ -11,7 +11,7 @@ app.use(express.json());
 
 app.use("/api", unifiedAuthRoutes);        // POST /api/login
 app.use("/api/root", rootAuthRoutes);      // POST /api/root/signup
-app.use("/api/employees", employeesRoutes);
+app.use("/api/employees", employeesRoutes);  // CRUD /api/employees
 
 app.get("/", (_req, res) => {
   res.send("Employee Management Backend Running");

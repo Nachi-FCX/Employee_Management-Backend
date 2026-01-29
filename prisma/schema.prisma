@@ -113,6 +113,7 @@ model Employees {
   status        Boolean  @default(true)
   created_at    DateTime @default(now())
   updated_at    DateTime @updatedAt
+  create_by      Int?    @map("create_by")
 
   company    Companies?  @relation(fields: [company_id], references: [id], onDelete: Cascade)
   department Departments @relation(fields: [department_id], references: [department_id])

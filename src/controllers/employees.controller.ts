@@ -3,33 +3,51 @@ import { Prisma } from "@prisma/client";
 import bcrypt from "bcrypt";
 import prisma from "../prisma";
 
-export const createEmployee = async (req: Request, res: Response) => {                              // CREATE EMPLOYEE          
+export const createEmployee = async (req: Request, res: Response) => {                            // create employee    
   try {
-    console.log("AUTH:", {
-    user: (req as any).user,
-    rootUser: (req as any).rootUser,
-    });
-
     const rootUser = (req as any).rootUser;
     const user = (req as any).user;
 
-    let company_id: number | null = null;
+    let company_id: number;
+    let create_by: number | null;
 
-    if (rootUser?.root_user_id) {
+    if (rootUser?.id || rootUser?.root_user_id) {
+      const rootUserId = rootUser.id ?? rootUser.root_user_id;
+
       if (!req.body.company_id) {
         return res.status(400).json({
-          message: "company_id is required for root",
+          message: "company_id is required for root user",
         });
       }
-      company_id = Number(req.body.company_id);
+
+      const requestedCompanyId = Number(req.body.company_id);
+
+      const company = await prisma.companies.findFirst({
+        where: {
+          id: requestedCompanyId,
+          root_user_id: rootUserId,
+        },
+      });
+
+      if (!company) {
+        return res.status(403).json({
+          message: "You are not authorized to access this company",
+        });
+      }
+
+      company_id = company.id;
+      create_by = null;                                                                           //  created by ROOT
     }
 
-    if (user?.company_id) {
+    else if (user?.company_id && user?.employee_id) {
       company_id = user.company_id;
+      create_by = user.employee_id;                                                               // created by EMPLOYEE
     }
 
-    if (!company_id) {
-      return res.status(401).json({ message: "Unauthorized" });
+    else {
+      return res.status(403).json({
+        message: "Unauthorized to create employee",
+      });
     }
 
     const {
@@ -56,6 +74,7 @@ export const createEmployee = async (req: Request, res: Response) => {          
           "first_name, email, department_id, role_id, username, password are required",
       });
     }
+
 
     const department = await prisma.departments.findUnique({
       where: { department_id: Number(department_id) },
@@ -87,6 +106,7 @@ export const createEmployee = async (req: Request, res: Response) => {          
 
     const password_hash = await bcrypt.hash(password, 10);
 
+
     const result = await prisma.$transaction(async (tx) => {
       const employee = await tx.employees.create({
         data: {
@@ -103,6 +123,7 @@ export const createEmployee = async (req: Request, res: Response) => {          
           department_id: Number(department_id),
           role_id: Number(role_id),
           status: true,
+          create_by, 
         },
       });
 
@@ -125,27 +146,58 @@ export const createEmployee = async (req: Request, res: Response) => {          
       employee: result.employee,
       user: result.userAccount,
     });
-  } 
-  catch (error) {
+  } catch (error) {
     console.error("CREATE EMPLOYEE ERROR:", error);
     return res.status(500).json({
       message: "Error creating employee",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
-
 };
 
-
-export const getEmployees = async (req: Request, res: Response) => {                                    // GET EMPLOYEES                    
+export const getEmployees = async (req: Request, res: Response) => {                                     // get employees          
   try {
     const user = (req as any).user;
+    const rootUser = (req as any).rootUser;
 
-    if (!user || !user.company_id) {
+    let company_id: number;
+
+    if (rootUser?.id || rootUser?.root_user_id) {
+      const rootUserId = rootUser.id ?? rootUser.root_user_id;
+
+      if (!req.body.company_id) {
+        return res.status(400).json({
+          message: "company_id is required for root user",
+        });
+      }
+
+      const requestedCompanyId = Number(req.body.company_id);
+
+      const company = await prisma.companies.findFirst({                              //  validate company belongs to root
+        where: {
+          id: requestedCompanyId,
+          root_user_id: rootUserId,
+        },
+      });
+
+      if (!company) {
+        return res.status(403).json({
+          message: "You are not authorized to access this company",
+        });
+      }
+
+      company_id = company.id;
+    }
+
+
+    else if (user?.company_id) {
+      company_id = user.company_id;
+    }
+
+    else {
       return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const company_id = user.company_id;
 
     const employees = await prisma.employees.findMany({
       where: { company_id },
@@ -158,13 +210,13 @@ export const getEmployees = async (req: Request, res: Response) => {            
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       total: employees.length,
       employees,
     });
   } catch (error) {
     console.error("GET EMPLOYEES ERROR:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Error fetching employees",
       error: error instanceof Error ? error.message : "Unknown error",
     });
@@ -172,12 +224,75 @@ export const getEmployees = async (req: Request, res: Response) => {            
 };
 
 
-export const updateEmployee = async (req: Request, res: Response) => {                                    // UPDATE EMPLOYEE
+
+export const updateEmployee = async (req: Request, res: Response) => {                                   // update employee
   try {
     const id = Number(req.params.id);
+    const user = (req as any).user;
+    const rootUser = (req as any).rootUser;
 
     if (!id) {
       return res.status(400).json({ message: "Employee ID is required" });
+    }
+
+    const existingEmployee = await prisma.employees.findUnique({
+      where: { id },
+    });
+
+    if (!existingEmployee) {
+      return res.status(404).json({ message: "Employee not found" });
+    }
+
+    if (rootUser?.id || rootUser?.root_user_id) {
+      const rootUserId = rootUser.id ?? rootUser.root_user_id;
+
+      if (!req.body.company_id) {
+        return res.status(400).json({
+          message: "company_id is required for root user",
+        });
+      }
+
+      const companyIdFromBody = Number(req.body.company_id);
+
+      
+      if (existingEmployee.company_id !== companyIdFromBody) {                    // employee must belong to the given company
+        return res.status(403).json({
+          message: "Employee does not found in given company",
+        });
+      }
+
+  
+      const company = await prisma.companies.findFirst({                          // company must belong to root
+        where: {
+          id: companyIdFromBody,
+          root_user_id: rootUserId,
+        },
+      });
+
+      if (!company) {
+        return res.status(403).json({
+          message: "You are not authorized to update this employee",
+        });
+      }
+    }
+
+
+    else if (user?.company_id) {
+      if (user.company_id !== existingEmployee.company_id) {
+        return res.status(403).json({
+          message: "You cannot update employees from another company",
+        });
+      }
+
+      if (req.body.status === false) {
+        return res.status(403).json({
+          message: "Employees are not allowed to deactivate employees",
+        });
+      }
+    }
+
+    else {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
     const updateData: any = {};
@@ -202,7 +317,7 @@ export const updateEmployee = async (req: Request, res: Response) => {          
       updateData.department_id = Number(req.body.department_id);
     if (req.body.role_id !== undefined)
       updateData.role_id = Number(req.body.role_id);
-    if (req.body.status !== undefined)                                                                    // SOFT DELETE EMPLOYEE
+    if (req.body.status !== undefined)
       updateData.status = req.body.status;
 
     if (Object.keys(updateData).length === 0) {
@@ -218,16 +333,15 @@ export const updateEmployee = async (req: Request, res: Response) => {          
       },
     });
 
-    res.status(200).json({
+    return res.status(200).json({
       message: "Employee updated successfully",
       employee,
     });
   } catch (error) {
     console.error("UPDATE EMPLOYEE ERROR:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Error updating employee",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }
 };
-
