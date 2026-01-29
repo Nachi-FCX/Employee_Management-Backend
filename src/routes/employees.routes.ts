@@ -4,6 +4,9 @@ import {
   getEmployees,
   updateEmployee,
   deleteEmployee,
+  changepassword,
+  checkedIn,
+  checkedOut,
 } from "../controllers/employees.controller";
 // Remove this line: import { authMiddleware } from "../middleware/auth.middleware";
 
@@ -14,5 +17,9 @@ router.post("/", createEmployee);           // was: authMiddleware, createEmploy
 router.get("/", getEmployees);              // was: authMiddleware, getEmployees
 router.put("/:id", updateEmployee);         // was: authMiddleware, updateEmployee
 router.delete("/:id", deleteEmployee);      // was: authMiddleware, deleteEmployee
+router.put("/change-password",changepassword);
+
+router.post("/checkedIn",checkedIn)
+router.post("/checkout",checkedOut)
 
 export default router;

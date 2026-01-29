@@ -7,11 +7,9 @@ generator client {
   provider = "prisma-client-js"
 }
 
-/**
- * =========================
- * ROOT USERS (SYSTEM ADMIN)
- * =========================
- */
+// =========================
+// ROOT USERS (SYSTEM ADMIN)
+// =========================
 model RootUser {
   id            Int      @id @default(autoincrement())
   full_name     String   @db.VarChar(255)
@@ -23,11 +21,9 @@ model RootUser {
   created_at    DateTime @default(now())
 }
 
-/**
- * =========================
- * COMPANIES (TENANTS)
- * =========================
- */
+// =========================
+// COMPANIES (TENANTS)
+// =========================
 model Companies {
   id            Int      @id @default(autoincrement())
   company_name  String   @db.VarChar(255)
@@ -46,11 +42,9 @@ model Companies {
   access      Access[]
 }
 
-/**
- * =========================
- * ROLES
- * =========================
- */
+// =========================
+// ROLES
+// =========================
 model Roles {
   role_id     Int    @id @default(autoincrement()) @map("id")
   company_id  Int?
@@ -60,16 +54,14 @@ model Roles {
   company   Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
   employees Employees[]
   users     Users[]
-  
-  @@unique([company_id, role_name])  // ← ADD THIS
+
+  @@unique([company_id, role_name])
   @@map("roles")
 }
 
-/**
- * =========================
- * DEPARTMENTS
- * =========================
- */
+// =========================
+// DEPARTMENTS
+// =========================
 model Departments {
   department_id   Int    @id @default(autoincrement()) @map("id")
   company_id      Int?
@@ -77,16 +69,14 @@ model Departments {
 
   company   Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
   employees Employees[]
-  
-  @@unique([company_id, department_name])  // ← ADD THIS
+
+  @@unique([company_id, department_name])
   @@map("departments")
 }
 
-/**
- * =========================
- * EMPLOYEES
- * =========================
- */
+// =========================
+// EMPLOYEES
+// =========================
 model Employees {
   id            Int      @id @default(autoincrement())
   company_id    Int?
@@ -112,17 +102,15 @@ model Employees {
   users      Users[]
   access     Access[]
   attendance Attendance[]
-  
-  @@unique([company_id, employee_code])  // ← ADD THIS
-  @@unique([company_id, email])           // ← ADD THIS
+
+  @@unique([company_id, employee_code])
+  @@unique([company_id, email])
   @@map("employees")
 }
 
-/**
- * =========================
- * USERS (LOGIN USERS)
- * =========================
- */
+// =========================
+// USERS (LOGIN USERS)
+// =========================
 model Users {
   id            Int      @id @default(autoincrement())
   company_id    Int?
@@ -134,18 +122,16 @@ model Users {
   created_at    DateTime @default(now())
 
   company  Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  employee Employees @relation(fields: [employee_id], references: [id], onDelete: Cascade)
-  role     Roles     @relation(fields: [role_id], references: [role_id])
-  
-  @@unique([company_id, username])  // ← ADD THIS
+  employee Employees  @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  role     Roles      @relation(fields: [role_id], references: [role_id])
+
+  @@unique([company_id, username])
   @@map("users")
 }
 
-/**
- * =========================
- * ATTENDANCE
- * =========================
- */
+// =========================
+// ATTENDANCE
+// =========================
 model Attendance {
   attendance_id Int      @id @default(autoincrement()) @map("id")
   company_id    Int?
@@ -158,15 +144,13 @@ model Attendance {
 
   company  Companies? @relation(fields: [company_id], references: [id])
   employee Employees? @relation(fields: [employee_id], references: [id])
-  
+
   @@map("attendance")
 }
 
-/**
- * =========================
- * PAGES (MASTER)
- * =========================
- */
+// =========================
+// PAGES (MASTER)
+// =========================
 model Pages {
   page_id     Int      @id @default(autoincrement())
   page_name   String   @db.VarChar(100)
@@ -175,15 +159,13 @@ model Pages {
   created_at  DateTime @default(now())
 
   access Access[]
-  
-  @@map("pages")  // ← ADD THIS
+
+  @@map("pages")
 }
 
-/**
- * =========================
- * ACCESS (RBAC)
- * =========================
- */
+// =========================
+// ACCESS (RBAC)
+// =========================
 model Access {
   id          Int     @id @default(autoincrement())
   company_id  Int
@@ -198,7 +180,5 @@ model Access {
   page     Pages     @relation(fields: [page_id], references: [page_id])
 
   @@unique([employee_id, page_id])
-  @@map("access")  // ← ADD THIS
+  @@map("access")
 }
-
-

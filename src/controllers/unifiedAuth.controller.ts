@@ -3,6 +3,8 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../prisma";
 
+let checkedinUser = new Set();
+
 export const unifiedLogin = async (req: Request, res: Response) => {
   try {
     const { username, password, role } = req.body;
@@ -13,11 +15,6 @@ export const unifiedLogin = async (req: Request, res: Response) => {
       });
     }
 
-    /**
-     * =========================
-     * ROOT USER LOGIN
-     * =========================
-     */
     if (role === "root") {
       const rootUser = await prisma.rootUser.findUnique({
         where: { username },
