@@ -9,7 +9,6 @@ export const unifiedAuth = (req: Request, res: Response, next: NextFunction) => 
       return res.status(401).json({ message: "Authorization token missing" });
     }
 
-    // Use regex to split by one or more spaces and filter out empty results
     const parts = authHeader.trim().split(/\s+/);
     const token = parts[1]; 
 

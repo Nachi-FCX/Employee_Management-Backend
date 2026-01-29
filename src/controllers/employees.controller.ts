@@ -11,7 +11,7 @@ export const createEmployee = async (req: Request, res: Response) => {          
     let company_id: number;
     let create_by: number | null;
 
-    if (rootUser?.id || rootUser?.root_user_id) {
+    if (rootUser?.id || rootUser?.root_user_id) {                                              // ROOT USER FLOW                 
       const rootUserId = rootUser.id ?? rootUser.root_user_id;
 
       if (!req.body.company_id) {
@@ -22,7 +22,7 @@ export const createEmployee = async (req: Request, res: Response) => {          
 
       const requestedCompanyId = Number(req.body.company_id);
 
-      const company = await prisma.companies.findFirst({
+      const company = await prisma.companies.findFirst({                            //  validate company belongs to root
         where: {
           id: requestedCompanyId,
           root_user_id: rootUserId,
@@ -36,12 +36,12 @@ export const createEmployee = async (req: Request, res: Response) => {          
       }
 
       company_id = company.id;
-      create_by = null;                                                                           //  created by ROOT
+      create_by = null;                                                           //  if root created (create = NULL)
     }
 
-    else if (user?.company_id && user?.employee_id) {
+    else if (user?.company_id && user?.employee_id) {                                               // EMPLOYEE USER FLOW
       company_id = user.company_id;
-      create_by = user.employee_id;                                                               // created by EMPLOYEE
+      create_by = user.employee_id;                                                               // created by EMPLOYEE id
     }
 
     else {
@@ -162,7 +162,7 @@ export const getEmployees = async (req: Request, res: Response) => {            
 
     let company_id: number;
 
-    if (rootUser?.id || rootUser?.root_user_id) {
+    if (rootUser?.id || rootUser?.root_user_id) {                                   // ROOT USER FLOW
       const rootUserId = rootUser.id ?? rootUser.root_user_id;
 
       if (!req.body.company_id) {
@@ -190,7 +190,7 @@ export const getEmployees = async (req: Request, res: Response) => {            
     }
 
 
-    else if (user?.company_id) {
+    else if (user?.company_id) {                                                                        // EMPLOYEE USER FLOW
       company_id = user.company_id;
     }
 
@@ -243,7 +243,7 @@ export const updateEmployee = async (req: Request, res: Response) => {          
       return res.status(404).json({ message: "Employee not found" });
     }
 
-    if (rootUser?.id || rootUser?.root_user_id) {
+    if (rootUser?.id || rootUser?.root_user_id) {                                     // FOR ROOTUSER
       const rootUserId = rootUser.id ?? rootUser.root_user_id;
 
       if (!req.body.company_id) {
@@ -277,7 +277,7 @@ export const updateEmployee = async (req: Request, res: Response) => {          
     }
 
 
-    else if (user?.company_id) {
+    else if (user?.company_id) {                                                    // FOR EMPLOYEE USER
       if (user.company_id !== existingEmployee.company_id) {
         return res.status(403).json({
           message: "You cannot update employees from another company",
