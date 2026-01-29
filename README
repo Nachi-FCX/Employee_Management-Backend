@@ -1,0 +1,106 @@
+
+DATABASE_URL = "postgresql://neondb_owner:npg_Tv6hBMt9bGxQ@ep-delicate-pine-a1u22evm-pooler.ap-southeast-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+
+1)Companies Table
+| Column Name   | Description                             |
+| ------------- | --------------------------------------- |
+| company_id    | Unique ID for the company (Primary Key) |
+| company_name  | Legal name of the organization          |
+| company_code  | Unique identifier (e.g., FIN-001)       |
+| contact_email | Primary business email                  |
+| status        | active / suspended / trial              |
+| created_at    | Record created time                     |
+
+
+2)Root Users Table
+| Column Name   | Description                 |
+| ------------- | --------------------------- |
+| root_user_id  | Unique ID for system admin  |
+| full_name     | Full name of the root admin |
+| username      | Unique login username       |
+| password_hash | Encrypted password          |
+| email         | Admin contact email         |
+| is_active     | System access status        |
+| created_at    | Record created time         |
+
+3)Roles Table
+| Column Name | Description                              |
+| ----------- | ---------------------------------------- |
+| role_id     | Unique ID for each role                  |
+| company_id  | Linked Company ID (Foreign Key)          |
+| role_name   | Role name (Admin, HR, Manager, Employee) |
+| description | Details about the role                   |
+
+4)Departments Table
+| Column Name     | Description                     |
+| --------------- | ------------------------------- |
+| department_id   | Unique ID for department        |
+| company_id      | Linked Company ID (Foreign Key) |
+| department_name | Name of the department          |
+
+5)Employees Table
+| Column Name   | Description                     |
+| ------------- | ------------------------------- |
+| employee_id   | Unique ID for employee          |
+| company_id    | Linked Company ID (Foreign Key) |
+| employee_code | Employee code                   |
+| first_name    | First name                      |
+| last_name     | Last name                       |
+| email         | Email address                   |
+| phone         | Contact number                  |
+| gender        | Gender                          |
+| date_of_birth | Date of birth                   |
+| join_date     | Date of joining                 |
+| salary        | Salary                          |
+| department_id | Department reference            |
+| role_id       | Role reference                  |
+| status        | Active / Inactive               |
+| created_at    | Record created time             |
+| updated_at    | Last updated time               |
+
+
+6)Users Table
+| Column Name   | Description                     |
+| ------------- | ------------------------------- |
+| user_id       | Unique user ID                  |
+| company_id    | Linked Company ID (Foreign Key) |
+| employee_id   | Linked employee ID              |
+| username      | Login username                  |
+| password_hash | Encrypted password              |
+| role_id       | User role                       |
+| is_active     | Account status                  |
+| created_at    | Account created time            |
+
+
+7)Attendance Table
+| Column Name   | Description                     |
+| ------------- | ------------------------------- |
+| attendance_id | Attendance record ID            |
+| company_id    | Linked Company ID (Foreign Key) |
+| employee_id   | Employee reference              |
+| date          | Attendance date                 |
+| check_in      | Check-in time                   |
+| check_out     | Check-out time                  |
+| status        | Present / Absent / Leave        |
+| created_at    | Record created time             |
+
+8) Pages Table (Master List of UI Pages)
+| Column Name | Description                                |
+| ----------- | ------------------------------------------ |
+| page_id     | Unique ID for each page (Primary Key)      |
+| page_name   | Human-readable page name (e.g., Dashboard) |
+| route_path  | Frontend route path (e.g., /employees)     |
+| module_name | Logical module name (e.g., HR, Payroll)    |
+| created_at  | Record created time                        |
+
+9) Access Table (Employee → Page Permissions)
+| Column Name | Description                                             |
+| ----------- | ------------------------------------------------------- |
+| access_id   | Unique ID for access record (Primary Key)               |
+| company_id  | Linked Company ID (Foreign Key)                         |
+| employee_id | Linked Employee ID (Foreign Key)                        |
+| page_id     | Linked Page ID (Foreign Key)                            |
+| can_view    | Whether employee can view this page (true / false)      |
+| can_edit    | Whether employee can edit on this page (true / false)   |
+| can_delete  | Whether employee can delete on this page (true / false) |
+
