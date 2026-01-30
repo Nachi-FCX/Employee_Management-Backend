@@ -2,25 +2,16 @@ import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../prisma";
 
-/**
- * =========================
- * ROOT USER SIGNUP
- * =========================
- * Only for creating new ROOT users
- * Requires existing ROOT user authentication
- */
 export const rootSignup = async (req: Request, res: Response) => {
   try {
     const { full_name, username, email, password } = req.body;
 
-    // 1. Validate all required fields
     if (!full_name || !username || !email || !password) {
       return res.status(400).json({
         message: "full_name, username, email, and password are all required",
       });
     }
-
-    // 2. Validate password strength (at least 8 characters, 1 uppercase, 1 number)
+    
     if (password.length < 8) {
       return res.status(400).json({
         message: "Password must be at least 8 characters long",

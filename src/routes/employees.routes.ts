@@ -3,16 +3,13 @@ import {
   createEmployee,
   getEmployees,
   updateEmployee,
-  deleteEmployee,
 } from "../controllers/employees.controller";
-// Remove this line: import { authMiddleware } from "../middleware/auth.middleware";
-
+import { TokenValidation } from "../middleware/token.validation.middleware";
+import { RootValidation } from "../middleware/root.middleware";
 const router = Router();
 
-// Remove authMiddleware from all routes:
-router.post("/", createEmployee);           // was: authMiddleware, createEmployee
-router.get("/", getEmployees);              // was: authMiddleware, getEmployees
-router.put("/:id", updateEmployee);         // was: authMiddleware, updateEmployee
-router.delete("/:id", deleteEmployee);      // was: authMiddleware, deleteEmployee
+router.post("/",TokenValidation,RootValidation,createEmployee);
+router.get("/", TokenValidation,RootValidation, getEmployees);
+router.put("/:id", TokenValidation,RootValidation, updateEmployee);
 
 export default router;
