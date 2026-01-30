@@ -3,7 +3,6 @@ import {
   createEmployee,
   getEmployees,
   updateEmployee,
-  deleteEmployee,
   changepassword,
   checkedIn,
   checkedOut,
