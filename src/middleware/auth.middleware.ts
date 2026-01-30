@@ -1,4 +1,13 @@
-import { Request, Response, NextFunction } from "express";
+        
+        
+                          
+                          
+                                        /////////////////////   Not In Use   ////////////////////////
+                                        //////////////////// Alternative Middleware ////////////////////
+                                        ///////////////////  Root and User Validation //////////////////
+
+
+import { Request, Response, NextFunction } from "express";      
 import jwt from "jsonwebtoken";
 
 export const unifiedAuth = (req: Request, res: Response, next: NextFunction) => {
@@ -18,7 +27,6 @@ export const unifiedAuth = (req: Request, res: Response, next: NextFunction) => 
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any;
 
-    // ROOT USER
     if (decoded.type === "ROOT") {
       (req as any).rootUser = {
         root_user_id: decoded.root_user_id,
@@ -26,10 +34,9 @@ export const unifiedAuth = (req: Request, res: Response, next: NextFunction) => 
       return next();
     }
 
-    // EMPLOYEE USER ✅ (FIXED)
     (req as any).user = {
       id: decoded.user_id,
-      employee_id: decoded.employee_id,   // 🔥 ADD THIS
+      employee_id: decoded.employee_id,   
       company_id: decoded.company_id,
       role: decoded.role,
     };

@@ -4,12 +4,12 @@ import {
   getEmployees,
   updateEmployee,
 } from "../controllers/employees.controller";
-import { unifiedAuth } from "../middleware/auth.middleware";
-
+import { TokenValidation } from "../middleware/token.validation.middleware";
+import { RootValidation } from "../middleware/root.middleware";
 const router = Router();
 
-router.post("/", unifiedAuth, createEmployee);
-router.get("/", unifiedAuth, getEmployees);
-router.put("/:id", unifiedAuth, updateEmployee);
+router.post("/",TokenValidation,RootValidation,createEmployee);
+router.get("/", TokenValidation,RootValidation, getEmployees);
+router.put("/:id", TokenValidation,RootValidation, updateEmployee);
 
 export default router;
