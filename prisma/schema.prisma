@@ -1,183 +1,190 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-generator client {
-  provider = "prisma-client-js"
-}
-
-// =========================
-// ROOT USERS (SYSTEM ADMIN)
-// =========================
+/// *
+///  * =========================
+///  * ROOT USERS (SYSTEM ADMIN)
+///  * =========================
 model RootUser {
-  id            Int      @id @default(autoincrement())
-  full_name     String   @db.VarChar(255)
-  username      String   @unique @db.VarChar(100)
+  id            Int         @id @default(autoincrement())
+  full_name     String      @db.VarChar(255)
+  username      String      @unique @db.VarChar(100)
   password_hash String
-  email         String   @unique @db.VarChar(255)
-  is_active     Boolean  @default(true)
+  email         String      @unique @db.VarChar(255)
+  is_active     Boolean     @default(true)
   last_login    DateTime?
-  created_at    DateTime @default(now())
+  created_at    DateTime    @default(now())
+  companies     Companies[]
 }
 
-// =========================
-// COMPANIES (TENANTS)
-// =========================
+/// *
+///  * =========================
+///  * COMPANIES (TENANTS)
+///  * =========================
 model Companies {
-  id            Int      @id @default(autoincrement())
-  company_name  String   @db.VarChar(255)
-  company_code  String   @unique @db.VarChar(50)
-  contact_email String   @unique @db.VarChar(255)
-  industry      String?  @db.VarChar(100)
-  status        String   @default("active") @db.VarChar(20)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
+  id            Int           @id @default(autoincrement())
+  company_name  String        @db.VarChar(255)
+  company_code  String        @unique @db.VarChar(50)
+  contact_email String        @unique @db.VarChar(255)
+  industry      String?       @db.VarChar(100)
+  status        String        @default("active") @db.VarChar(20)
+  created_at    DateTime      @default(now())
+  updated_at    DateTime      @updatedAt
+  root_user_id  Int?          @map("root")
+  root_user     RootUser?     @relation(fields: [root_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "root")
+  access        Access[]
+  attendance    Attendance[]
+  departments   Departments[]
+  employees     Employees[]
+  roles         Roles[]
+  users         Users[]
 
-  roles       Roles[]
-  departments Departments[]
-  employees   Employees[]
-  users       Users[]
-  attendance  Attendance[]
-  access      Access[]
+  @@map("Companies")
 }
 
-// =========================
-// ROLES
-// =========================
+/// *
+///  * =========================
+///  * ROLES
+///  * =========================
 model Roles {
-  role_id     Int    @id @default(autoincrement()) @map("id")
-  company_id  Int?
-  role_name   String @db.VarChar(50)
+  role_id     Int         @id @default(autoincrement()) @map("id")
+  role_name   String      @db.VarChar(50)
   description String?
-
-  company   Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  employees Employees[]
-  users     Users[]
+  company_id  Int?
+  employees   Employees[]
+  company     Companies?  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  users       Users[]
 
   @@unique([company_id, role_name])
   @@map("roles")
 }
 
-// =========================
-// DEPARTMENTS
-// =========================
+/// *
+///  * =========================
+///  * DEPARTMENTS
+///  * =========================
 model Departments {
-  department_id   Int    @id @default(autoincrement()) @map("id")
+  department_id   Int         @id @default(autoincrement()) @map("id")
+  department_name String      @db.VarChar(100)
   company_id      Int?
-  department_name String @db.VarChar(100)
-
-  company   Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  employees Employees[]
+  company         Companies?  @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  employees       Employees[]
 
   @@unique([company_id, department_name])
   @@map("departments")
 }
 
-// =========================
-// EMPLOYEES
-// =========================
+/// *
+///  * =========================
+///  * EMPLOYEES
+///  * =========================
 model Employees {
-  id            Int      @id @default(autoincrement())
-  company_id    Int?
-  employee_code String   @db.VarChar(20)
-  first_name    String   @db.VarChar(100)
-  last_name     String   @db.VarChar(100)
-  email         String   @db.VarChar(150)
-  phone         String   @db.VarChar(15)
-  gender        String   @db.VarChar(10)
+  id            Int          @id @default(autoincrement())
+  employee_code String       @db.VarChar(20)
+  first_name    String       @db.VarChar(100)
+  last_name     String       @db.VarChar(100)
+  email         String       @db.VarChar(150)
+  phone         String       @db.VarChar(15)
+  gender        String       @db.VarChar(10)
   date_of_birth DateTime
   join_date     DateTime
-  salary        Decimal  @db.Decimal(10, 2)
+  salary        Decimal      @db.Decimal(10, 2)
   department_id Int
+  status        Boolean      @default(true)
+  created_at    DateTime     @default(now())
+  updated_at    DateTime     @updatedAt
+  company_id    Int?
   role_id       Int?
-  status        Boolean  @default(true)
-  created_at    DateTime @default(now())
-  updated_at    DateTime @updatedAt
-
-  company    Companies?   @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  department Departments @relation(fields: [department_id], references: [department_id])
-  role       Roles?       @relation(fields: [role_id], references: [role_id])
-
-  users      Users[]
-  access     Access[]
-  attendance Attendance[]
+  create_by     Int?         @map("create_by")
+  access        Access[]
+  attendance    Attendance[]
+  company       Companies?   @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  department    Departments  @relation(fields: [department_id], references: [department_id])
+  role          Roles?       @relation(fields: [role_id], references: [role_id])
+  users         Users?
 
   @@unique([company_id, employee_code])
   @@unique([company_id, email])
   @@map("employees")
 }
 
-// =========================
-// USERS (LOGIN USERS)
-// =========================
+/// *
+///  * =========================
+///  * USERS (LOGIN USERS)
+///  * =========================
 model Users {
-  id            Int      @id @default(autoincrement())
-  company_id    Int?
-  employee_id   Int      @unique
-  username      String   @db.VarChar(100)
+  id            Int        @id @default(autoincrement())
+  employee_id   Int        @unique
+  username      String     @db.VarChar(100)
   password_hash String
   role_id       Int
-  is_active     Boolean  @default(true)
-  created_at    DateTime @default(now())
-
-  company  Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
-  employee Employees  @relation(fields: [employee_id], references: [id], onDelete: Cascade)
-  role     Roles      @relation(fields: [role_id], references: [role_id])
+  is_active     Boolean    @default(true)
+  created_at    DateTime   @default(now())
+  company_id    Int?
+  company       Companies? @relation(fields: [company_id], references: [id], onDelete: Cascade)
+  employee      Employees  @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  role          Roles      @relation(fields: [role_id], references: [role_id])
 
   @@unique([company_id, username])
+  @@unique([employee_id, username], map: "username")
   @@map("users")
 }
 
-// =========================
-// ATTENDANCE
-// =========================
+/// *
+///  * =========================
+///  * ATTENDANCE
+///  * =========================
 model Attendance {
-  attendance_id Int      @id @default(autoincrement()) @map("id")
-  company_id    Int?
+  attendance_id Int        @id @default(autoincrement()) @map("id")
   employee_id   Int?
   date          DateTime
+  status        String?
+  created_at    DateTime   @default(now())
+  company_id    Int?
   check_in      DateTime?
   check_out     DateTime?
-  status        String?
-  created_at    DateTime @default(now())
-
-  company  Companies? @relation(fields: [company_id], references: [id])
-  employee Employees? @relation(fields: [employee_id], references: [id])
+  company       Companies? @relation(fields: [company_id], references: [id])
+  employee      Employees? @relation(fields: [employee_id], references: [id])
 
   @@map("attendance")
 }
 
-// =========================
-// PAGES (MASTER)
-// =========================
+/// *
+///  * =========================
+///  * PAGES (MASTER)
+///  * =========================
 model Pages {
   page_id     Int      @id @default(autoincrement())
   page_name   String   @db.VarChar(100)
   route_path  String   @unique @db.VarChar(255)
   module_name String?  @db.VarChar(100)
   created_at  DateTime @default(now())
-
-  access Access[]
+  access      Access[]
 
   @@map("pages")
 }
 
-// =========================
-// ACCESS (RBAC)
-// =========================
+/// *
+///  * =========================
+///  * ACCESS (RBAC)
+///  * =========================
 model Access {
-  id          Int     @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   company_id  Int
   employee_id Int
   page_id     Int
-  can_view    Boolean @default(true)
-  can_edit    Boolean @default(false)
-  can_delete  Boolean @default(false)
-
-  company  Companies @relation(fields: [company_id], references: [id])
-  employee Employees @relation(fields: [employee_id], references: [id])
-  page     Pages     @relation(fields: [page_id], references: [page_id])
+  can_view    Boolean   @default(true)
+  can_edit    Boolean   @default(false)
+  can_delete  Boolean   @default(false)
+  company     Companies @relation(fields: [company_id], references: [id])
+  employee    Employees @relation(fields: [employee_id], references: [id])
+  page        Pages     @relation(fields: [page_id], references: [page_id])
 
   @@unique([employee_id, page_id])
   @@map("access")
