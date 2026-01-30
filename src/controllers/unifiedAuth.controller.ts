@@ -3,7 +3,6 @@ import prisma from "../prisma";
 import { rootLoginService , employeeLoginService} from "../services/auth.service";
 
 
-
 export const unifiedLogin = async (req: Request, res: Response) => {
   try {
     const { username, password, role } = req.body;
