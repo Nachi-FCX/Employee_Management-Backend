@@ -4,7 +4,7 @@ import { rootSignup } from "../controllers/rootSignup.controller";
 const router = Router();
 
 /**
- * ROOT USER SIGNUP (TEMPORARILY PUBLIC FOR FIRST ROOT USER)
+ * ROOT USER SIGNUP 
  * POST /api/root/signup
  */
 router.post("/signup", rootSignup);  
