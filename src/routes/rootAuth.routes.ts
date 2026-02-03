@@ -1,6 +1,9 @@
 import { Router } from "express";
 import { rootSignup } from "../controllers/rootSignup.controller";
+
 import { changepassword } from "../controllers/rootAuth.controller";
+import { createCompany } from "../controllers/companySetup.controller";
+import { RootValidation } from "../middleware/root.middleware";
 
 const router = Router();
 
@@ -10,4 +13,7 @@ const router = Router();
  */
 router.post("/signup", rootSignup);  
 router.put("/change-password",changepassword);
+router.post("/create-company", RootValidation, createCompany);
+
+
 export default router;
