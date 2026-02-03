@@ -5,6 +5,7 @@ import { Decimal } from "@prisma/client/runtime/library";
 import { error } from "node:console";
 import bcrypt from "bcrypt";
 
+
 export const createEmployee = async (req: Request, res: Response) => {                            // create employee    
   try {
     const rootUser = (req as any).rootUser;
@@ -314,7 +315,7 @@ export const updateEmployee = async (req: Request, res: Response) => {          
     if (req.body.join_date !== undefined)
       updateData.join_date = new Date(req.body.join_date);
     if (req.body.salary !== undefined)
-      updateData.salary = new Number(req.body.salary);
+      updateData.salary = new Prisma.Decimal(req.body.salary);
     if (req.body.department_id !== undefined)
       updateData.department_id = Number(req.body.department_id);
     if (req.body.role_id !== undefined)
@@ -343,35 +344,6 @@ export const updateEmployee = async (req: Request, res: Response) => {          
     console.error("UPDATE EMPLOYEE ERROR:", error);
     return res.status(500).json({
       message: "Error updating employee",
-      error: error instanceof Error ? error.message : "Unknown error",
-    });
-  }
-};
-
-/**
- * =========================
- * DELETE EMPLOYEE
- * =========================
- */
-export const deleteEmployee = async (req: Request, res: Response) => {
-  try {
-    const id = Number(req.params.id);
-
-    if (!id) {
-      return res.status(400).json({ message: "Employee ID is required" });
-    }
-
-    await prisma.employees.delete({
-      where: { id },
-    });
-
-    res.status(200).json({
-      message: "Employee deleted successfully",
-    });
-  } catch (error) {
-    console.error("DELETE EMPLOYEE ERROR:", error);
-    res.status(500).json({
-      message: "Error deleting employee",
       error: error instanceof Error ? error.message : "Unknown error",
     });
   }

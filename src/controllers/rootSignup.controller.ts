@@ -1,17 +1,19 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../prisma";
+import { generateToken } from "../services/auth.service"; // adjust path if needed
 
 export const rootSignup = async (req: Request, res: Response) => {
   try {
     const { full_name, username, email, password } = req.body;
 
+    /* ---------------- Validation ---------------- */
     if (!full_name || !username || !email || !password) {
       return res.status(400).json({
         message: "full_name, username, email, and password are all required",
       });
     }
-    
+
     if (password.length < 8) {
       return res.status(400).json({
         message: "Password must be at least 8 characters long",
@@ -28,7 +30,7 @@ export const rootSignup = async (req: Request, res: Response) => {
       });
     }
 
-    // 3. Check if username already exists
+    /* ---------------- Duplicate checks ---------------- */
     const existingUsername = await prisma.rootUser.findUnique({
       where: { username },
     });
@@ -39,7 +41,6 @@ export const rootSignup = async (req: Request, res: Response) => {
       });
     }
 
-    // 4. Check if email already exists
     const existingEmail = await prisma.rootUser.findUnique({
       where: { email },
     });
@@ -50,10 +51,9 @@ export const rootSignup = async (req: Request, res: Response) => {
       });
     }
 
-    // 5. Hash password
+    /* ---------------- Create user ---------------- */
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // 6. Create new ROOT user
     const rootUser = await prisma.rootUser.create({
       data: {
         full_name,
@@ -64,21 +64,30 @@ export const rootSignup = async (req: Request, res: Response) => {
       },
     });
 
-    // 7. Response (Don't return password hash)
-    res.status(201).json({
+    /* ---------------- JWT TOKEN (USING SHARED UTILITY) ---------------- */
+    const token = generateToken(
+      {
+        root_user_id: rootUser.id,
+        type: "ROOT",
+        companyCompleted: false,
+      },
+      "2h"
+    );
+
+    /* ---------------- Response ---------------- */
+    return res.status(201).json({
       message: "Root user created successfully",
+      token,
       user: {
         id: rootUser.id,
         full_name: rootUser.full_name,
         username: rootUser.username,
         email: rootUser.email,
-        is_active: rootUser.is_active,
-        created_at: rootUser.created_at,
       },
     });
   } catch (error) {
     console.error("Root Signup Error:", error);
-    res.status(500).json({
+    return res.status(500).json({
       message: "Root user signup failed",
       error: error instanceof Error ? error.message : "Unknown error",
     });
