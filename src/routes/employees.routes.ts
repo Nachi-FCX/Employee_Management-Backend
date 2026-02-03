@@ -3,7 +3,6 @@ import {
   createEmployee,
   getEmployees,
   updateEmployee,
-  deleteEmployee,
   changepassword,
   attendance,
 
@@ -15,9 +14,9 @@ const router = Router();
 router.post("/",TokenValidation,RootValidation,createEmployee);
 router.get("/", TokenValidation,RootValidation, getEmployees);
 router.put("/:id", TokenValidation,RootValidation, updateEmployee);
-router.put("/change-password",changepassword);
+router.put("/change-password",TokenValidation,changepassword);
 
-router.post("/attendance",TokenValidation,attendance)
+router.post("/attendance",TokenValidation,attendance);
 
 
 export default router;
