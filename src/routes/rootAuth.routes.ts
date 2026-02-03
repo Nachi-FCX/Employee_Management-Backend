@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { rootSignup } from "../controllers/rootSignup.controller";
+import { changepassword } from "../controllers/rootAuth.controller";
 
 const router = Router();
 
@@ -8,5 +9,5 @@ const router = Router();
  * POST /api/root/signup
  */
 router.post("/signup", rootSignup);  
-
+router.put("/change-password",changepassword);
 export default router;
