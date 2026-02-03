@@ -104,3 +104,5 @@ DATABASE_URL = "postgresql://neondb_owner:npg_Tv6hBMt9bGxQ@ep-delicate-pine-a1u2
 | can_edit    | Whether employee can edit on this page (true / false)   |
 | can_delete  | Whether employee can delete on this page (true / false) |
 
+v 1
+
