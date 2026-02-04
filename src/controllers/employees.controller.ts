@@ -376,10 +376,6 @@ export const changepassword = async(req:Request,res:Response)=>{
      throw error(401,"old password is Invalid");
   
     const hashedPassword = await bcrypt.hash(newpassword, 10)
-
-    
-
-
     await prisma.users.update({
       where: {id},
       data:{

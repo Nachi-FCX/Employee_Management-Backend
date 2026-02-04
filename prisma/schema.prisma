@@ -34,6 +34,7 @@ model Companies {
   contact_email String        @unique @db.VarChar(255)
   industry      String?       @db.VarChar(100)
   status        String        @default("active") @db.VarChar(20)
+  is_active     Boolean       @default(true)
   created_at    DateTime      @default(now())
   updated_at    DateTime      @updatedAt
   root_user_id  Int?          @map("root")
