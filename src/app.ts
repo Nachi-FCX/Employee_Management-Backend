@@ -11,8 +11,8 @@ const app = express();
 
 app.use(cors());
 app.use(express.json());
-app.use("/api", unifiedAuthRoutes);        // POST /api/login
-app.use("/api/root", rootAuthRoutes);      // POST /api/root/signup
+app.use("/api", unifiedAuthRoutes);        
+app.use("/api/root", rootAuthRoutes);      
 app.use("/api/employees", employeesRoutes);
 app.use("/api/attendence", attendenceRouthes);
 

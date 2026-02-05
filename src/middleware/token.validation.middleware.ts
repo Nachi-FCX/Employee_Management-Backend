@@ -5,7 +5,7 @@ export const TokenValidation = (req: Request, res: Response, next: NextFunction)
   try {
     const decoded = verifyToken(req.headers.authorization);
 
-    // (req as any).auth = decoded;
+    (req as any).user = decoded;
 
     next();
   } catch (error: any) {
