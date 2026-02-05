@@ -3,9 +3,7 @@ import {
   createEmployee,
   getEmployees,
   updateEmployee,
-  changepassword,
-  attendance,
-
+  changepassword
 } from "../controllers/employees.controller";
 import { TokenValidation } from "../middleware/token.validation.middleware";
 import { RootValidation } from "../middleware/root.middleware";
@@ -15,8 +13,6 @@ router.post("/",TokenValidation,RootValidation,createEmployee);
 router.get("/", TokenValidation,RootValidation, getEmployees);
 router.put("/:id", TokenValidation,RootValidation, updateEmployee);
 router.put("/change-password",TokenValidation,changepassword);
-
-router.post("/attendance",TokenValidation,attendance);
 
 
 export default router;

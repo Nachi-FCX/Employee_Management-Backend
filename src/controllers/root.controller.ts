@@ -1,10 +1,9 @@
 import { Request, Response } from "express";
 import bcrypt from "bcrypt";
 import prisma from "../prisma";
+import { generateToken } from "../services/auth.service"; // adjust path if needed
+
 import { error } from "node:console";
-
-
-
 
 export const changepassword = async(req:Request,res:Response)=>{
   try{
@@ -31,9 +30,6 @@ export const changepassword = async(req:Request,res:Response)=>{
      throw error(401,"old password is Invalid");
   
     const hashedPassword = await bcrypt.hash(newpassword, 10)
-
-    
-
 
     await prisma.rootUser.update({
       where: {id},
