@@ -6,6 +6,7 @@ import { error } from "node:console";
 
 
 
+
 export const changepassword = async(req:Request,res:Response)=>{
   try{
     const{oldpassword,newpassword,id} = req.body;
@@ -52,4 +53,31 @@ export const changepassword = async(req:Request,res:Response)=>{
 
   
   }
+}
+
+export const getCompanies = async(req:Request,res: Response) =>{
+    const rootUser = (req as any).rootUser;
+
+
+
+    if(!rootUser){
+      return res.status(403).json({message:"access denied"});
+    }
+
+    
+
+
+    const companies = await prisma.companies.findMany({
+      select:{
+        id:true,
+        company_name: true
+
+      },
+      where:{
+        root_user_id:rootUser.root_user_id
+        
+      }
+    });
+  console.log(rootUser)
+  res.json(companies);
 }

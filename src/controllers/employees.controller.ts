@@ -8,6 +8,9 @@ import bcrypt from "bcrypt";
 
 export const createEmployee = async (req: Request, res: Response) => {                            // create employee    
   try {
+
+     
+
     const rootUser = (req as any).rootUser;
     const user = (req as any).user;
 
@@ -24,6 +27,7 @@ export const createEmployee = async (req: Request, res: Response) => {          
       }
 
       const requestedCompanyId = Number(req.body.company_id);
+      
 
       const company = await prisma.companies.findFirst({                            //  validate company belongs to root
         where: {
@@ -168,13 +172,15 @@ export const getEmployees = async (req: Request, res: Response) => {            
     if (rootUser?.id || rootUser?.root_user_id) {                                   // ROOT USER FLOW
       const rootUserId = rootUser.id ?? rootUser.root_user_id;
 
-      if (!req.body.company_id) {
+       const requestedCompanyId = Number(req.query.company_id);
+
+      if (!requestedCompanyId) {
         return res.status(400).json({
           message: "company_id is required for root user",
         });
       }
 
-      const requestedCompanyId = Number(req.body.company_id);
+     
 
       const company = await prisma.companies.findFirst({                              //  validate company belongs to root
         where: {
