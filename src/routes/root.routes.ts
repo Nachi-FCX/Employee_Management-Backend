@@ -15,28 +15,26 @@ import {
     deleteDepartment
 
       } from "../controllers/company.controller";
-import { RootValidation } from "../middleware/root.middleware";
-import {rootSignup} from "../controllers/unifiedAuth.controller";
+
 
 const router = Router();
 
-router.post("/signup", rootSignup);  
 router.put("/change-password",changepassword);
 
-router.post("/create-company", RootValidation, createCompany);
-router.get("/company", RootValidation, getCompanies);
-router.put("/company/:id", RootValidation, updateCompany);
-router.delete("/company/:id", RootValidation, deleteCompany);
+router.post("/create-company",  createCompany);
+router.get("/company",  getCompanies);
+router.put("/company/:id",  updateCompany);
+router.delete("/company/:id",  deleteCompany);
 
-router.get("/get-roles/:company_id", RootValidation, getRolesByCompany);
-router.post("/create-role", RootValidation, createRole);
-router.put("/update-role/:id", RootValidation, updateRole);
-router.delete("/delete-role/:id", RootValidation, deleteRole);
+router.get("/get-roles/:company_id",  getRolesByCompany);
+router.post("/create-role",  createRole);
+router.put("/update-role/:id",  updateRole);
+router.delete("/delete-role/:id",  deleteRole);
 
-router.post("/create-department", RootValidation, createDepartment);
-router.get("/get-departments/:company_id", RootValidation, getDepartmentsByCompany);
-router.put("/update-department/:id", RootValidation, updateDepartment);
-router.delete("/delete-department/:id", RootValidation, deleteDepartment);
+router.post("/create-department",  createDepartment);
+router.get("/get-departments/:company_id",  getDepartmentsByCompany);
+router.put("/update-department/:id",  updateDepartment);
+router.delete("/delete-department/:id",  deleteDepartment);
 
 
 
