@@ -1,7 +1,6 @@
 import { Request, Response } from "express";
 import { Prisma } from "@prisma/client";
 import prisma from "../prisma";
-import { Decimal } from "@prisma/client/runtime/library";
 import { error } from "node:console";
 import bcrypt from "bcrypt";
 

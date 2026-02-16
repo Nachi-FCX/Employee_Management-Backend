@@ -183,3 +183,159 @@ export const deleteCompany = async (req: Request, res: Response) => {
     return res.status(500).json({ message: "Internal server error" });
   }
 };
+
+
+  // ROLES CRUD (UNDER COMPANY)
+export const createRole = async (req: Request, res: Response) => {
+  try {
+    const { role_name, description, company_id } = req.body;
+
+    if (!role_name || !company_id) {
+      return res.status(400).json({ message: "Role name and company_id are required" });
+    }
+
+    const role = await prisma.roles.create({
+      data: {
+        role_name,
+        description,
+        company_id,
+      },
+    });
+
+    return res.status(201).json(role);
+  } catch (error: any) {
+    console.error(error);
+    return res.status(500).json({ message: error.message });
+  }
+};
+
+export const getRolesByCompany = async (req: Request, res: Response) => {
+  try {
+    const company_id = Number(req.params.company_id);
+
+    const roles = await prisma.roles.findMany({
+      where: { company_id },
+      orderBy: { role_name: "asc" },
+    });
+
+    return res.status(200).json(roles);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to fetch roles" });
+  }
+};
+
+
+export const updateRole = async (req: Request, res: Response) => {
+  try {
+    const role_id = Number(req.params.id);
+    const { role_name, description } = req.body;
+
+    const role = await prisma.roles.update({
+      where: { role_id },
+      data: {
+        role_name,
+        description,
+      },
+    });
+
+    return res.status(200).json(role);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Role update failed" });
+  }
+};
+
+
+export const deleteRole = async (req: Request, res: Response) => {
+  try {
+    const role_id = Number(req.params.id);
+
+    await prisma.roles.delete({
+      where: { role_id },
+    });
+
+    return res.status(200).json({ message: "Role deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Role deletion failed" });
+  }
+};
+
+
+  //  DEPARTMENTS CRUD (UNDER COMPANY)
+  
+
+
+export const createDepartment = async (req: Request, res: Response) => {
+  try {
+    const { department_name, company_id } = req.body;
+
+    if (!department_name || !company_id) {
+      return res.status(400).json({ message: "Department name and company_id are required" });
+    }
+
+    const department = await prisma.departments.create({
+      data: {
+        department_name,
+        company_id,
+      },
+    });
+
+    return res.status(201).json(department);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Department creation failed" });
+  }
+};
+
+
+export const getDepartmentsByCompany = async (req: Request, res: Response) => {
+  try {
+    const company_id = Number(req.params.company_id);
+
+    const departments = await prisma.departments.findMany({
+      where: { company_id },
+      orderBy: { department_name: "asc" },
+    });
+
+    return res.status(200).json(departments);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Failed to fetch departments" });
+  }
+};
+
+
+export const updateDepartment = async (req: Request, res: Response) => {
+  try {
+    const department_id = Number(req.params.id);
+    const { department_name } = req.body;
+
+    const department = await prisma.departments.update({
+      where: { department_id },
+      data: { department_name },
+    });
+
+    return res.status(200).json(department);
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Department update failed" });
+  }
+};
+
+
+export const deleteDepartment = async (req: Request, res: Response) => {
+  try {
+    const department_id = Number(req.params.id);
+
+    await prisma.departments.delete({
+      where: { department_id },
+    });
+
+    return res.status(200).json({ message: "Department deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({ message: "Department deletion failed" });
+  }
+};
