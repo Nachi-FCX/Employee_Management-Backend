@@ -61,7 +61,7 @@ export const createCompany = async (req: Request, res: Response) => {
 
 export const getCompanies = async (req: Request, res: Response) => {
   try {
-    const rootUser = (req as any).rootUser;
+    const rootUser = req.body.rootUser;
 
     if (!rootUser) {
       return res.status(401).json({ message: "Unauthorized" });

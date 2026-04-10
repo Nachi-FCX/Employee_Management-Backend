@@ -6,7 +6,7 @@ import router from "./unifiedAuth.routes";
 router.post("/punch",TokenValidation,attendance);
 router.get("/logs", TokenValidation, Logs);
 router.get("/full-logs", RootValidation, fullLogs);
-router.post("/leave/apply", applyLeave);
+router.post("/leave/apply", TokenValidation, applyLeave);
 
 
 export default router;

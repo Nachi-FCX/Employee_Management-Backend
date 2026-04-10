@@ -199,6 +199,9 @@ export const fullLogs = async (req: Request, res: Response) => {
 export const applyLeave = async (req: Request, res: Response) => {
   try {
     const user = (req as any).user;
+    if (!user) {
+      return res.status(401).json("Unauthorized");
+    }
     const employee_id = user.employee_id;
     const company_id = user.company_id;
     const { from_date, to_date, reason } = req.body;
