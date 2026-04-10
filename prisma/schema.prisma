@@ -41,6 +41,7 @@ model Companies {
   root_user     RootUser?     @relation(fields: [root_user_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "root")
   access        Access[]
   attendance    Attendance[]
+    leaves        LeaveRequests[]
   departments   Departments[]
   employees     Employees[]
   roles         Roles[]
@@ -105,6 +106,7 @@ model Employees {
   create_by     Int?         @map("create_by")
   access        Access[]
   attendance    Attendance[]
+  leaves        LeaveRequests[]
   company       Companies?   @relation(fields: [company_id], references: [id], onDelete: Cascade)
   department    Departments  @relation(fields: [department_id], references: [department_id])
   role          Roles?       @relation(fields: [role_id], references: [role_id])
@@ -190,3 +192,23 @@ model Access {
   @@unique([employee_id, page_id])
   @@map("access")
 }
+/// *
+///  * =========================
+///  * LEAVE REQUESTS
+///  * =========================
+model LeaveRequests {
+  id           Int       @id @default(autoincrement())
+  employee_id  Int
+  company_id   Int
+  from_date    DateTime
+  to_date      DateTime
+  reason       String
+  status       String    @default("PENDING")
+  created_at   DateTime  @default(now())
+
+  employee     Employees @relation(fields: [employee_id], references: [id], onDelete: Cascade)
+  company      Companies @relation(fields: [company_id], references: [id], onDelete: Cascade)
+
+  @@map("leave_requests")
+}
+
