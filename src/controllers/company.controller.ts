@@ -61,15 +61,17 @@ export const createCompany = async (req: Request, res: Response) => {
 
 export const getCompanies = async (req: Request, res: Response) => {
   try {
-    const rootUser = req.body.company_id;
+    const company_id = Number(req.query.company_id);
 
-    if (!rootUser) {
-      return res.status(401).json({ message: "Unauthorized" });
+    if (!company_id) {
+      return res.status(400).json({
+        message: "company_id is required in query",
+      });
     }
 
     const companies = await prisma.companies.findMany({
       where: {
-        root_user_id: rootUser.root_user_id,
+        id: company_id, 
         status: "active",
       },
       orderBy: {
@@ -77,10 +79,16 @@ export const getCompanies = async (req: Request, res: Response) => {
       },
     });
 
-    return res.status(200).json({ companies });
+    return res.status(200).json({
+      message: "Companies fetched successfully",
+      companies,
+    });
   } catch (error) {
     console.error("Get companies error:", error);
-    return res.status(500).json({ message: "Internal server error" });
+    return res.status(500).json({
+      message: "Error fetching companies",
+      error: (error as Error).message,
+    });
   }
 };
 
